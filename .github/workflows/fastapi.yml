@@ -12,11 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          cache: 'pipenv'
         env:
           AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
       - run: |
           pip install pipenv
           pipenv install --dev
-          pytest --dist load -vv -n auto && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
-          isort . --diff --check-only
-          black --check --diff .
+          pipenv run pytest --dist load -vv -n auto && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
+          pipenv run isort . --diff --check-only
+          pipenv run black --check --diff .
