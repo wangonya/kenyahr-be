@@ -7,19 +7,42 @@ on:
     branches: [main]
 
 jobs:
-  tests:
+  create-virtualenv:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-          # cache: 'pipenv'
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+
+      - uses: syphar/restore-pip-download-cache@v1
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      - run: |
+          pipenv install --dev
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+  run-tests:
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v2
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+      - name: Run Tests
         env:
           AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
-      - run: |
-          pip install pipenv
-          pipenv install --dev
-          pipenv run pytest --dist load -vv -n auto && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
-          pipenv run isort . --diff --check-only
-          pipenv run black --check --diff .
+        run: pipenv run pytest -vv && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
+
+  run-linters:
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v2
+      - uses: syphar/restore-virtualenv@v1
+        id: cache-virtualenv
+
+      - run: pipenv run isort . --diff --check-only
+      - run: pipenv run black --check --diff .
