@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v2
-      env:
-        AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
+        env:
+          AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
       - run: |
           pip install pipenv
           pipenv install --dev
