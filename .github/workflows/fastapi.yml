@@ -18,7 +18,14 @@ jobs:
           python-version: '3.9'
           # cache: 'pipenv'
         env:
+          HOST: ${{ secrets.HOST }}
+          PORT: ${{ secrets.PORT }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
           AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
+          AUTH_ALGORITHM: ${{ secrets.AUTH_ALGORITHM }}
+          AUTH_ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.AUTH_ACCESS_TOKEN_EXPIRE_MINUTES }}
+          MONGODB_URL: ${{ secrets.MONGODB_URL }}
+          MONGODB_DBNAME: ${{ secrets.MONGODB_DBNAME }}
       - run: pipenv install --dev
       - run: pipenv run pytest -vv && bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
       - run: pipenv run isort . --diff --check-only
