@@ -23,3 +23,4 @@ class Env(BaseSettings):
 
 
 ENV = Env()
+print(ENV)
