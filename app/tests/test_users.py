@@ -10,14 +10,22 @@ from app.services.user import UserService
 
 
 def test_create_user(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     assert user_data.get("email") == user.get("email")
 
 
 def test_create_duplicate_user(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     UserService(mongodb_test_repository).create_user(user)
 
@@ -25,18 +33,26 @@ def test_create_duplicate_user(mongodb_test_repository, faker):
         UserService(mongodb_test_repository).create_user(user)
 
     assert e.value.status_code == 409
-    assert e.value.detail == "This email is already registered"
+    assert e.value.detail == "This username/email is already registered"
 
 
 def test_get_user_by_id(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     assert mongodb_test_repository.get(_id=user.get("_id")) is not None
 
 
 def test_get_user_by_email(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     assert mongodb_test_repository.get(email=user.get("email")) is not None
@@ -63,13 +79,17 @@ def test_decode_access_token(faker):
     assert decoded_token.get("_id") == user_data.get("_id")
 
 
-def test_decode_invalid_access_token(faker):
+def test_decode_invalid_access_token():
     with pytest.raises(HTTPException):
         UserService.decode_access_token("12345")
 
 
 def test_get_current_user(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     user["_id"] = str(user["_id"])
@@ -79,7 +99,11 @@ def test_get_current_user(mongodb_test_repository, faker):
 
 
 def test_current_user_not_found(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     _id = str(user["_id"])
@@ -95,9 +119,13 @@ def test_current_user_not_found(mongodb_test_repository, faker):
 
 
 def test_login_user(mongodb_test_repository, faker):
-    user_data = {"email": faker.email(), "password": faker.password()}
+    user_data = {
+        "username": faker.simple_profile()["username"],
+        "email": faker.email(),
+        "password": faker.password(),
+    }
     form_data = OAuth2PasswordRequestForm(
-        username=user_data.get("email"), password=user_data.get("password"), scope=""
+        username=user_data.get("username"), password=user_data.get("password"), scope=""
     )
     user = UserCreate(**user_data)
     UserService(mongodb_test_repository).create_user(user)

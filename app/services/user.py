@@ -7,7 +7,6 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic.networks import EmailStr
 from pymongo.errors import DuplicateKeyError
 
 from app.core.env import ENV
@@ -66,8 +65,8 @@ class UserService:
         except JWTError:
             raise credentials_exception
 
-    def authenticate_user(self, email: EmailStr, password: str) -> UserInDB:
-        user = self.repo.get(email=email)
+    def authenticate_user(self, username: str, password: str) -> UserInDB:
+        user = self.repo.get(username=username)
         if user and self.verify_password(password, user.get("password")):
             return UserInDB(**user)
         raise HTTPException(
@@ -101,6 +100,6 @@ class UserService:
         except DuplicateKeyError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="This email is already registered",
+                detail="This username/email is already registered",
             )
         return new_user
