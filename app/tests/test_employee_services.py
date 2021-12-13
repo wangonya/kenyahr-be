@@ -6,7 +6,6 @@ from fastapi.exceptions import HTTPException
 
 from app.models.employee import EmployeeCreate, EmployeeFilter, EmployeeUpdate
 from app.services.employee import EmployeeService
-from app.tests.conftest import MongoDBTestRepository
 
 fake = Faker()
 
@@ -94,10 +93,10 @@ def test_get_employee_by_id(mongodb_test_repository):
 def test_get_employee_by_first_name_filter(mongodb_test_repository):
     employee = EmployeeCreate(**employee_data)
     EmployeeService(mongodb_test_repository).create_employee(employee)
-    filter = EmployeeFilter(first_name=employee.first_name)
+    filter_parameters = EmployeeFilter(first_name=employee.first_name)
     filtered_employee = EmployeeService(
         mongodb_test_repository
-    ).get_employees_by_filters(filter)
+    ).get_employees_by_filters(filter_parameters)
     assert employee.first_name == filtered_employee[0].get("first_name")
 
 

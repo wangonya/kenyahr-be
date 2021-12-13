@@ -56,4 +56,4 @@ class EmployeeUpdate(EmployeeFilter):
 
 
 class EmployeeInDB(EmployeeCreate, BaseModel):
-    ...
+    pass

@@ -23,8 +23,8 @@ class EmployeeService:
         employees = self.repo.list()
         return [employee for employee in employees]
 
-    def get_employee_by_id(self, id: str):
-        return self.repo.get(_id=ObjectId(id))
+    def get_employee_by_id(self, _id: str):
+        return self.repo.get(_id=ObjectId(_id))
 
     def get_employees_by_filters(self, filter_parameters: EmployeeFilter):
         employees = self.repo.filter(

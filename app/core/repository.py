@@ -14,7 +14,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def filter(self, **kwargs):
+    def filter(self, filter_parameters):
         raise NotImplementedError
 
     @abc.abstractmethod
