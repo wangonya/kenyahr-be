@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from faker import Faker
 from fastapi.exceptions import HTTPException
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
@@ -8,24 +9,23 @@ from app.core.env import ENV
 from app.models.user import UserCreate
 from app.services.user import UserService
 
+fake = Faker()
 
-def test_create_user(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+user_data = {
+    "username": fake.name(),
+    "email": fake.email(),
+    "password": fake.password(),
+}
+
+
+def test_create_user(mongodb_test_repository):
     user = UserCreate(**user_data)
-    user = UserService(mongodb_test_repository).create_user(user)
-    assert user_data.get("email") == user.get("email")
+    created_user = UserService(mongodb_test_repository).create_user(user)
+    assert user_data.get("email") == created_user.get("email")
 
 
-def test_create_duplicate_user(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_create_duplicate_user(mongodb_test_repository):
+    mongodb_test_repository.collection.create_index("email", unique=True)
     user = UserCreate(**user_data)
     UserService(mongodb_test_repository).create_user(user)
 
@@ -36,42 +36,32 @@ def test_create_duplicate_user(mongodb_test_repository, faker):
     assert e.value.detail == "This username/email is already registered"
 
 
-def test_get_user_by_id(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_get_user_by_id(mongodb_test_repository):
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     assert mongodb_test_repository.get(_id=user.get("_id")) is not None
 
 
-def test_get_user_by_email(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_get_user_by_email(mongodb_test_repository):
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     assert mongodb_test_repository.get(email=user.get("email")) is not None
 
 
-def test_password_hash(faker):
-    password = faker.password()
+def test_password_hash():
+    password = fake.password()
     hash = UserService.get_password_hash(password)
     assert UserService.verify_password(password, hash) is True
 
 
-def test_create_access_token(faker):
-    user_data = {"_id": faker.uuid4()}
+def test_create_access_token():
+    user_data = {"_id": fake.uuid4()}
     access_token = UserService.create_access_token(user_data)
     assert access_token
 
 
-def test_decode_access_token(faker):
-    user_data = {"_id": faker.uuid4()}
+def test_decode_access_token():
+    user_data = {"_id": fake.uuid4()}
     access_token = UserService.create_access_token(
         user_data, timedelta(minutes=ENV.AUTH_ACCESS_TOKEN_EXPIRE_MINUTES)
     )
@@ -84,12 +74,7 @@ def test_decode_invalid_access_token():
         UserService.decode_access_token("12345")
 
 
-def test_get_current_user(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_get_current_user(mongodb_test_repository):
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     user["_id"] = str(user["_id"])
@@ -98,12 +83,7 @@ def test_get_current_user(mongodb_test_repository, faker):
     assert str(current_user.get("_id")) == user.get("_id")
 
 
-def test_current_user_not_found(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_current_user_not_found(mongodb_test_repository):
     user = UserCreate(**user_data)
     user = UserService(mongodb_test_repository).create_user(user)
     _id = str(user["_id"])
@@ -118,14 +98,11 @@ def test_current_user_not_found(mongodb_test_repository, faker):
     assert e.value.detail == "Could not validate credentials"
 
 
-def test_login_user(mongodb_test_repository, faker):
-    user_data = {
-        "username": faker.simple_profile()["username"],
-        "email": faker.email(),
-        "password": faker.password(),
-    }
+def test_login_user(mongodb_test_repository):
     form_data = OAuth2PasswordRequestForm(
-        username=user_data.get("username"), password=user_data.get("password"), scope=""
+        username=user_data.get("username"),
+        password=user_data.get("password"),
+        scope="",
     )
     user = UserCreate(**user_data)
     UserService(mongodb_test_repository).create_user(user)
@@ -133,9 +110,9 @@ def test_login_user(mongodb_test_repository, faker):
     assert "access_token" in access_token.keys()
 
 
-def test_login_user_invalid_credentials(mongodb_test_repository, faker):
+def test_login_user_invalid_credentials(mongodb_test_repository):
     form_data = OAuth2PasswordRequestForm(
-        username=faker.email(), password=faker.password(), scope=""
+        username=fake.email(), password=fake.password(), scope=""
     )
     with pytest.raises(HTTPException) as e:
         UserService(mongodb_test_repository).login_user(form_data)
