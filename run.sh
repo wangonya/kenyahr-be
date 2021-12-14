@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ "$1" == dev ]; then
     echo "running dev environment"
     uvicorn app.main:app --reload --port=5000

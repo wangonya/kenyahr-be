@@ -94,12 +94,10 @@ class UserService:
 
     def create_user(self, new_user_data: UserCreate):
         new_user_data.password = self.get_password_hash(new_user_data.password)
-        user = UserCreate(**new_user_data.dict())
         try:
-            new_user = self.repo.add(user.dict())
+            return self.repo.add(new_user_data.dict())
         except DuplicateKeyError:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="This username/email is already registered",
             )
-        return new_user

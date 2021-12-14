@@ -23,6 +23,8 @@ class BaseModel(PydanticBaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
 
     class Config:
+        use_enum_values = True
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
